@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULTIMATE RAM + CPU DESTROYER v2.2</title>
+    <style>
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            background: #0a000f;
+            color: #00ffcc;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            text-shadow: 0 0 30px #ff00ff;
+        }
+
+        button {
+            padding: 20px 50px;
+            font-size: 1.4rem;
+            margin: 15px;
+            background: transparent;
+            border: 4px solid #ff0044;
+            color: #ff0044;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #ff0044;
+            color: white;
+        }
+
+        #status {
+            font-size: 1.6rem;
+            margin: 20px;
+            color: #ffff00;
+        }
+
+        .metric {
+            font-size: 1.4rem;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚀 RAM + CPU DESTROYER v2.2</h1>
+    <p>TEST MODE - Ăn ~50% RAM + Max CPU</p>
+
+    <button onclick="startDestroy()">BẮT ĐẦU DESTROY</button>
+    <button onclick="stopAll()" style="border-color:#00ff00; color:#00ff00;">DỪNG NGAY !!!</button>
+
+    <div id="status">Sẵn sàng test...</div>
+    <div class="metric">RAM: <span id="ram">0</span> MB</div>
+    <div class="metric">CPU Workers: <span id="workers">0</span></div>
+
+    <script>
+        let memoryHog = [];
+        let workers = [];
+        let isRunning = false;
+        let interval = null;
+        let targetRAM = 0;
+
+        function formatMB(bytes) {
+            return (bytes / (1024 * 1024)).toFixed(1);
+        }
+
+        function updateStats() {
+            const estimatedMB = Math.floor(memoryHog.length * 95);
+            document.getElementById('ram').textContent = estimatedMB.toLocaleString();
+            document.getElementById('workers').textContent = workers.length;
+        }
+
+        function createHeavyWorker() {
+            const workerCode = `
+                self.onmessage = function() {
+                    while(true) {
+                        let x = 0;
+                        for(let i = 0; i < 10000000; i++) {
+                            x += Math.sqrt(i) * Math.sin(i) * Math.random();
+                        }
+                        // Giảm tải CPU một chút để worker không chết ngay
+                        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
+                    }
+                };
+            `;
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const worker = new Worker(URL.createObjectURL(blob));
+            worker.postMessage('start');
+            return worker;
+        }
+
+        function startDestroy() {
+            if (isRunning) return;
+            isRunning = true;
+            memoryHog = [];
+            workers = [];
+
+            // Ước tính target RAM ~50% (dựa trên available memory)
+            targetRAM = 2048; // MB (bạn có thể chỉnh lên 4096, 8192...)
+
+            document.getElementById('status').innerHTML =
+                `<span style="color:#ff0044;">ĐANG ĂN RAM + MAX CPU...</span>`;
+
+            // Tạo CPU destroyers
+            for (let i = 0; i < navigator.hardwareConcurrency || 8; i++) {
+                workers.push(createHeavyWorker());
+            }
+
+            interval = setInterval(() => {
+                if (!isRunning) return;
+
+                try {
+                    // Allocate RAM mạnh
+                    const hugeString = "X".repeat(40 * 1024 * 1024); // ~40MB
+                    const bigArray = new Array(8 * 1024 * 1024).fill(0);
+                    const floatArray = new Float64Array(12 * 1024 * 1024); // ~96MB
+
+                    const heavyObj = {
+                        str: hugeString,
+                        data: bigArray,
+                        typed: floatArray,
+                        nested: Array(2000).fill({ a: Math.random(), b: new Array(3000) })
+                    };
+
+                    memoryHog.push(heavyObj);
+
+                    // Thêm buffer
+                    for (let i = 0; i < 2; i++) {
+                        memoryHog.push({ buffer: new Uint8Array(25 * 1024 * 1024) });
+                    }
+
+                    updateStats();
+
+                    // Dừng khi gần đạt target
+                    if (memoryHog.length * 80 > targetRAM * 1000) {
+                        document.getElementById('status').innerHTML =
+                            `<span style="color:#ffff00;">ĐÃ ĐẠT MỤC TIÊU ~${targetRAM}MB RAM</span>`;
+                    }
+
+                } catch (e) {
+                    document.getElementById('status').innerHTML =
+                        `<span style="color:#ffff00;">Browser gần full RAM!</span>`;
+                    stopAll();
+                }
+            }, 500); // Rất nhanh
+        }
+
+        function stopAll() {
+            isRunning = false;
+            if (interval) clearInterval(interval);
+
+            // Kill all workers
+            workers.forEach(w => w.terminate());
+            workers = [];
+
+            // Giải phóng một phần RAM
+            memoryHog.length = Math.floor(memoryHog.length * 0.8);
+            updateStats();
+
+
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (isRunning) stopAll();
+        });
+    </script>
+</body>
+
+</html>
