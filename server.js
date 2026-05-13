@@ -236,5 +236,5 @@ app.post('/api/admin/action', async (req, res) => {
     res.json({ success: false });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Render thường sử dụng port 10000 mặc định
 app.listen(PORT, () => console.log(`Server API đang chạy tại port ${PORT}`));
