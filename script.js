@@ -3,8 +3,8 @@ let balance = 0;
 let betHistory = [];
 let withdrawHistory = [];
 
-const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://localhost:3000" : "";
+// Sử dụng đường dẫn tương đối để hoạt động trên cả localhost, IP nội bộ và khi deploy web
+const API_URL = "";
 
 async function fetchData(endpoint, options = {}) {
     return fetch(`${API_URL}${endpoint}`, {

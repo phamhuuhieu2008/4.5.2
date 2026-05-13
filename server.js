@@ -8,8 +8,7 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json());
-// Chỉ phục vụ các file tĩnh trong thư mục 'public'
-app.use(express.static(path.join(__dirname, './'))); // Hoặc đường dẫn chứa các file index.html, style.css
+app.use(express.static(path.join(__dirname, '.')));
 
 // --- QUẢN LÝ FILE JSON ---
 const DATA_DIR = path.join(__dirname, 'data');
