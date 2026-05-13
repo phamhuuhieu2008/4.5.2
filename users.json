@@ -1,0 +1,16 @@
+{
+  "0708069602": {
+    "password": "0708069602",
+    "balance": 887279997,
+    "isLocked": false,
+    "betHistory": [],
+    "withdrawHistory": []
+  },
+  "phamhuuhieu": {
+    "password": "1111",
+    "balance": 1000000000,
+    "isLocked": false,
+    "betHistory": [],
+    "withdrawHistory": []
+  }
+}
